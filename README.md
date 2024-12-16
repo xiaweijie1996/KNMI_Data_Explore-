@@ -1,4 +1,3 @@
-# KNMI_Data_Explore
 
 # KNMI Data Exploration
 
@@ -9,12 +8,6 @@ This repository provides tools to explore and analyze meteorological data obtain
 
 ---
 
-## Features
-- **Download Meteorological Data**: Automate the process of fetching data from KNMI servers or other sources.
-- **Read and Process GRIB Files**: Extract key information and metadata from GRIB1/GRIB2 files using libraries like `cfgrib` and `eccodes`.
-- **Flexible Filtering**: Supports dynamic filtering of GRIB data to extract specific layers (e.g., temperature, pressure, wind speed).
-
----
 
 ## Requirements
 
