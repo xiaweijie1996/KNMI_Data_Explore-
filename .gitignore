@@ -1,2 +1,13 @@
-HARM43_V1_P1_2024121611/
-HARM43_V1_P1_2024121611.tar
+# ignore all .tar files
+*.tar
+
+# ignore all .pickle files, except for grid.pkl
+!grid.pkl
+*.pkl
+
+.cache.sqlite
+
+# ignore data filess
+HARM43_V1_P1_2025010210
+
+try.py

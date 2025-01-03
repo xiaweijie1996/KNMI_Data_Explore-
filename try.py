@@ -1,53 +1,43 @@
-import traceback
-import sys
- 
-from eccodes import *
- 
-file_path = r'HARM43_V1_P1_2024121611\HA43_N20_202412161100_03900_GB'
-VERBOSE = 1  # verbose error reporting
+import openmeteo_requests
 
-# Open the GRIB file
-with open(file_path, 'rb') as f:
-    print("Debugging GRIB file: Listing all keys and their values...\n")
-    message_count = 0
+import requests_cache
+import pandas as pd
+from retry_requests import retry
 
-    while True:
-        try:
-            # Load the next GRIB message
-            gid = codes_grib_new_from_file(f)
-            if gid is None:  # End of file
-                break
+# Setup the Open-Meteo API client with cache and retry on error
+cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+openmeteo = openmeteo_requests.Client(session = retry_session)
 
-            message_count += 1
-            print(f"\n--- GRIB Message {message_count} ---")
+# Make sure all required weather variables are listed here
+# The order of variables in hourly or daily is important to assign them correctly below
+url = "https://api.open-meteo.com/v1/forecast"
+params = {
+	"latitude": 49,
+	"longitude": 0,
+	"hourly": "temperature_2m",
+	"models": "knmi_harmonie_arome_netherlands"
+}
+responses = openmeteo.weather_api(url, params=params)
 
-            # Check if the message has any keys
-            iterator = codes_keys_iterator_new(gid, 'all')
-            keys_found = False
+# Process first location. Add a for-loop for multiple locations or weather models
+response = responses[0]
+print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+print(f"Elevation {response.Elevation()} m asl")
+print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
-            # Iterate over all keys
-            while codes_keys_iterator_next(iterator):
-                keys_found = True
-                key = codes_keys_iterator_get_name(iterator)
-                try:
-                    value = codes_get(gid, key)
-                    print(f"{key}: {value}")
-                except CodesInternalError:
-                    # Ignore keys that cannot be retrieved
-                    continue
+# Process hourly data. The order of variables needs to be the same as requested.
+hourly = response.Hourly()
+hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
 
-            if not keys_found:
-                print("No keys found in this message. Check file structure or configuration.")
+hourly_data = {"date": pd.date_range(
+	start = pd.to_datetime(hourly.Time(), unit = "s", utc = True),
+	end = pd.to_datetime(hourly.TimeEnd(), unit = "s", utc = True),
+	freq = pd.Timedelta(seconds = hourly.Interval()),
+	inclusive = "left"
+)}
+hourly_data["temperature_2m"] = hourly_temperature_2m
 
-            # Release resources for this message
-            codes_keys_iterator_delete(iterator)
-            codes_release(gid)
-
-        except CodesInternalError as e:
-            print(f"Error reading GRIB file: {e}")
-            break
-
-    if message_count == 0:
-        print("No GRIB messages found in the file. Ensure the file is valid.")
-
-    print("\nFinished debugging the GRIB file.")
+hourly_dataframe = pd.DataFrame(data = hourly_data)
+print(hourly_dataframe)
