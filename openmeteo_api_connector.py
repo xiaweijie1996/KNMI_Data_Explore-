@@ -5,6 +5,7 @@ import pandas as pd
 from retry_requests import retry
 from tqdm import tqdm
 
+# All available weather variables
 full_variables = ["temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature", 
             "precipitation", "rain", "snowfall", "weather_code", "pressure_msl", "surface_pressure", 
             "cloud_cover", "cloud_cover_low", "cloud_cover_mid", "cloud_cover_high", "visibility", 
@@ -14,12 +15,25 @@ full_variables = ["temperature_2m", "relative_humidity_2m", "dew_point_2m", "app
             "surface_temperature", "temperature_50m", "temperature_100m", "temperature_200m", "temperature_300m"]
 
 def _get_order_num_of_variable(variables):
+    
+    """ Get the order of variables which are listed in the full_variables, 
+    eg, ["temperature_2m", "relative_humidity_2m"] will return [0, 1]
+   """
+   
     _index_list = []
     for i in variables:
         _index_list.append(full_variables.index(i))
     return _index_list
 
 def _get_gird(gird_shape = (20, 20)):
+    
+    """ Load the grid from the pickle file, and divide the grid into 20*20 small grids, 
+    this function will return a list of small grids which is used to get the historical 
+    weather data and the small grid will leads to a smaller computing time.
+    
+    eg. if the grid is 130*130, the return value will be a list of (20, 20) small grids.
+    """
+    
     _pickle_path = r'grid.pkl'
     with open(_pickle_path, 'rb') as f:
         grid = pickle.load(f)
@@ -53,6 +67,9 @@ def get_historical_weather_data(location, # (latitude, longitude)
                                 data_range, # date range, eg ("2024-12-19", "2025-01-01")
                                 models = "knmi_harmonie_arome_netherlands"
                                 ):
+    
+    """ Get the historical weather data from the Open-Meteo API, based on the location, variables, and date range."""
+    
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -99,6 +116,9 @@ def get_grid_historical_weather_data(grid_list,
                                     variables, # vaiables to be extracted
                                     data_range, # date range, eg ("2024-12-19", "2025-01-01")
                                     models = "knmi_harmonie_arome_netherlands"):
+    
+    """ Get the historical weather data of each grid point from the Open-Meteo API, based on the variables and date range."""
+    
     _collected_dataframes = []
     _count = 0
     for _grid in tqdm(grid_list):
