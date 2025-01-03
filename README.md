@@ -3,8 +3,8 @@
 
 This repository provides tools to explore and analyze meteorological data obtained from the **KNMI (Royal Netherlands Meteorological Institute)**. It consists of two main scripts:
 
-1. **`access_data_exp.py`**: Script for downloading KNMI data.
-2. **`read_data_exp.py`**: Script for reading and processing the downloaded GRIB data.
+1. **`download_data_by_api.py`**: Script for downloading KNMI data, after that you need to decompress the file mannually.
+2. **`openmeteo_api_connector.py`**: Script for reading and processing the weather data from the API.
 
 ---
 

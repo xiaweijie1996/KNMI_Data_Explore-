@@ -8,6 +8,8 @@
 
 # ignore data filess
 HARM43_V1_P1_2025010210
+
+# Ignore specific Python script
 try.py
 
 # Do not ignore grid.pkl
