@@ -1,7 +1,6 @@
 import xarray as xr
 import cfgrib
 
-
 file_path = r'HARM43_V1_P1_2024121611\HA43_N20_202412161100_00500_GB'
 
 # Possible filter keys to explore

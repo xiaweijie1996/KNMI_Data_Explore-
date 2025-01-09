@@ -142,13 +142,11 @@ def get_grid_weather_data(grid_list,
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
-    _grid_shape = (130, 130)
+    _grid_shape = (5,5)
     for i in range(len(full_variables)):
-        
         collected_data = get_grid_weather_data(_get_gird(_grid_shape), full_variables[i:i+1], None)
         print(full_variables[i])
         _row = collected_data.iloc[0,:].values
         _row = _row.reshape(_grid_shape).T
         plt.imshow(_row)
         
-        break
