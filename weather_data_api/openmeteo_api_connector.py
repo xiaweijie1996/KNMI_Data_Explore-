@@ -81,8 +81,6 @@ def get_weather_data(location, # (latitude, longitude)
         params = {
             "latitude": location[0],
             "longitude": location[1],
-            # "start_date": data_range[0],
-            # "end_date": data_range[1],
             "hourly": variables,
             "models": models
         }
@@ -144,7 +142,7 @@ if __name__ == "__main__":
     
     _grid_shape = (5,5)
     for i in range(len(full_variables)):
-        collected_data = get_grid_weather_data(_get_gird(_grid_shape), full_variables[i:i+1], None)
+        collected_data = get_grid_weather_data(_get_gird(_grid_shape), full_variables[i:i+1], ("2024-12-19", "2024-12-19"))
         print(full_variables[i])
         _row = collected_data.iloc[0,:].values
         _row = _row.reshape(_grid_shape).T
