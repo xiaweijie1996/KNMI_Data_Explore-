@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 # File path to your GRIB file
 file_path = r'HARM43_V1_P1_2025010210\HA43_N20_202501021000_00900_GB'
 
-
 datasets = cfgrib.open_datasets(file_path)
 ds = datasets[1]  # For example, Dataset 1
 

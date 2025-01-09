@@ -5,6 +5,7 @@
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 
 import requests
 
@@ -32,7 +33,6 @@ class OpenDataAPI:
             f"{self.base_url}/datasets/{dataset_name}/versions/{dataset_version}/files/{file_name}/url"
         )
 
-
 def download_file_from_temporary_download_url(download_url, filename):
     try:
         with requests.get(download_url, stream=True) as r:
@@ -51,6 +51,7 @@ def main():
     api_key = "eyJvcmciOiI1ZTU1NGUxOTI3NGE5NjAwMDEyYTNlYjEiLCJpZCI6ImE1OGI5NGZmMDY5NDRhZDNhZjFkMDBmNDBmNTQyNjBkIiwiaCI6Im11cm11cjEyOCJ9"
     dataset_name = "harmonie_arome_cy43_p1"
     dataset_version = "1.0"
+    
     logger.info(f"Fetching latest file of {dataset_name} version {dataset_version}")
 
     api = OpenDataAPI(api_token=api_key)
@@ -62,7 +63,6 @@ def main():
         logger.error(f"Unable to retrieve list of files: {response['error']}")
         sys.exit(1)
         
-    print('I am response', response)
     latest_file = response["files"][0].get("filename")
     print(latest_file)
     logger.info(f"Latest file is: {latest_file}")

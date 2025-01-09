@@ -60,11 +60,10 @@ def _get_gird(gird_shape = (20, 20)):
     return new_grid_list
 
 
-
 # Get the historical weather data from AIP
-def get_historical_weather_data(location, # (latitude, longitude)
+def get_weather_data(location, # (latitude, longitude)
                                 variables, # vaiables to be extracted
-                                data_range, # date range, eg ("2024-12-19", "2025-01-01")
+                                data_range = None, # date range, eg ("2024-12-19", "2025-01-01")
                                 models = "knmi_harmonie_arome_netherlands"
                                 ):
     
@@ -76,16 +75,27 @@ def get_historical_weather_data(location, # (latitude, longitude)
     openmeteo = openmeteo_requests.Client(session = retry_session)
 
     # Make sure all required weather variables are listed here
-    url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
-    # url =  "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": location[0],
-        "longitude": location[1],
-        "start_date": data_range[0],
-        "end_date": data_range[1],
-        "hourly": variables,
-        "models": models
-    }
+    # url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+    if data_range is None:
+        url =  "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": location[0],
+            "longitude": location[1],
+            # "start_date": data_range[0],
+            # "end_date": data_range[1],
+            "hourly": variables,
+            "models": models
+        }
+    else:
+        url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": location[0],
+            "longitude": location[1],
+            "start_date": data_range[0],
+            "end_date": data_range[1],
+            "hourly": variables,
+            "models": models
+        }
     
     responses = openmeteo.weather_api(url, params=params)
     response = responses[0]
@@ -112,26 +122,33 @@ def get_historical_weather_data(location, # (latitude, longitude)
     return hourly_dataframe
 
 
-def get_grid_historical_weather_data(grid_list,
-                                    variables, # vaiables to be extracted
-                                    data_range, # date range, eg ("2024-12-19", "2025-01-01")
-                                    models = "knmi_harmonie_arome_netherlands"):
+def get_grid_weather_data(grid_list,
+                         variables, # vaiables to be extracted
+                         data_range = None, # date range, eg ("2024-12-19", "2025-01-01")
+                         models = "knmi_harmonie_arome_netherlands"):
     
     """ Get the historical weather data of each grid point from the Open-Meteo API, based on the variables and date range."""
     
     _collected_dataframes = []
-    _count = 0
     for _grid in tqdm(grid_list):
-        _dataframe = get_historical_weather_data(_grid, variables, data_range, models)
+        _dataframe = get_weather_data(_grid, variables, data_range, models)
         _collected_dataframes.append(_dataframe)
-        if _count != 0:
-            # drop the 'date' column
-            _collected_dataframes[-1].drop(columns = 'date', inplace = True)
-        _count += 1
-    
-    return pd.concat(_collected_dataframes, axis = 0)
+        _collected_dataframes[-1].index = _collected_dataframes[-1]['date']
+        _collected_dataframes[-1].drop(columns = 'date', inplace = True)
+        
+    _collected_dataframes = pd.concat(_collected_dataframes, axis = 1)
+    return _collected_dataframes
 
 if __name__ == "__main__":
-    # print(_get_gird())
-    # data = get_historical_weather_data((49, 0), full_variables[:2], ("2024-03-29", "2024-09-01"))
-    collected_data = get_grid_historical_weather_data(_get_gird(), full_variables[:2], ("2024-08-29", "2024-09-01"))
+    import matplotlib.pyplot as plt
+    
+    _grid_shape = (130, 130)
+    for i in range(len(full_variables)):
+        
+        collected_data = get_grid_weather_data(_get_gird(_grid_shape), full_variables[i:i+1], None)
+        print(full_variables[i])
+        _row = collected_data.iloc[0,:].values
+        _row = _row.reshape(_grid_shape).T
+        plt.imshow(_row)
+        
+        break
